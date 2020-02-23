@@ -1,6 +1,6 @@
-package info.ladislav.jlox;
+package info.ladislav.jlox.lexer;
 
-enum TokenType {
+public enum TokenType {
 
      // Single-character tokens.     
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,

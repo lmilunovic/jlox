@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import info.ladislav.jlox.lexer.*;
 /**
  * JLox interpreter initial version.
  *
@@ -51,7 +52,7 @@ public class JLox
         tokens.forEach(System.out::println);                                         
       }              
       
-      static void error(int line, String message) {                       
+      public static void error(int line, String message) {                       
         report(line, "", message);                                        
       }
     

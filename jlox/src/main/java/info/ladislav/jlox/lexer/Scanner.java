@@ -1,14 +1,16 @@
-package info.ladislav.jlox;
+package info.ladislav.jlox.lexer;
 
-import java.util.ArrayList;                                               
-import java.util.HashMap;                                                 
-import java.util.List;                                                    
-import java.util.Map;                                                     
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static info.ladislav.jlox.TokenType.*; 
-import info.ladislav.jlox.Token;
+import static info.ladislav.jlox.lexer.TokenType.*;
 
-class Scanner {            
+import info.ladislav.jlox.JLox;
+
+
+public class Scanner {            
 
   private static final Map<String, TokenType> keywords;
 
@@ -39,11 +41,11 @@ class Scanner {
   private int current = 0;                             
   private int line = 1;    
 
-  Scanner(String source) {                                                
+  public Scanner(String source) {                                                
     this.source = source;                                                 
   }             
   
-  List<Token> scanTokens() {                        
+  public List<Token> scanTokens() {                        
     while (!isAtEnd()) {                            
       // We are at the beginning of the next lexeme.
       start = current;                              
