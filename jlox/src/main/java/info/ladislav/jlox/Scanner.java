@@ -81,8 +81,11 @@ class Scanner {
 
         if (match('/')) {                                             
           // A comment goes until the end of the line.                
-          while (peek() != '\n' && !isAtEnd()) advance();             
-        } else {                                                      
+          while (peek() != '\n' && !isAtEnd()) advance();
+
+        } else if (match('*')){
+          multilineComment();
+        }else {                                                      
           addToken(SLASH);                                            
         }                                                             
         break;    
@@ -193,7 +196,19 @@ class Scanner {
     addToken(type);                                            
   }       
 
-  
+  private void multilineComment(){
+    while(peek() != '*' && !isAtEnd() ){
+      if(peek() == '\n'){
+        ++line;
+      }
+      advance();
+    }
+
+    if( isAtEnd() || peek() != '/') {
+      JLox.error(current,"Unmached multiline comment.");
+    }
+  }
+
   private boolean isAlpha(char c) {       
     return (c >= 'a' && c <= 'z') ||      
            (c >= 'A' && c <= 'Z') ||      
