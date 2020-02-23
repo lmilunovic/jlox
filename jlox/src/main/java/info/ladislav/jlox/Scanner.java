@@ -75,8 +75,14 @@ class Scanner {
           line++;                                    
           break;                     
 
-      default:
-        JLox.error(line, "Unexpected character");
+        case '"': string(); break;
+
+        default:
+          if(Character.isDigit(c)){
+            number();
+          }else{
+            JLox.error(line, "Unexpected character");
+          }
         break;
     }                                            
   }                                   
@@ -107,6 +113,42 @@ class Scanner {
   private char peek() {           
     if (isAtEnd()) return '\0';   
     return source.charAt(current);
-  }                 
+  }               
+  
+  private void string() {      
+
+    while (peek() != '"' && !isAtEnd()) {                   
+      if (peek() == '\n') line++;                           
+      advance();                                            
+    }
+
+    // Unterminated string.                                 
+    if (isAtEnd()) {                                        
+      JLox.error(line, "Unterminated string.");              
+      return;                                               
+    }                                                       
+
+    // The closing ".                                       
+    advance();                                              
+
+    // Trim the surrounding quotes.                         
+    String value = source.substring(start + 1, current - 1);
+    addToken(STRING, value);                                
+  }
+
+  private void number() {                                     
+    while (isDigit(peek())) advance();
+
+    // Look for a fractional part.                            
+    if (peek() == '.' && isDigit(peekNext())) {               
+      // Consume the "."                                      
+      advance();                                              
+
+      while (isDigit(peek())) advance();                      
+    }                                                         
+
+    addToken(NUMBER,                                          
+        Double.parseDouble(source.substring(start, current)));
+  }                                                           
 
 }                                       
