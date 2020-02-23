@@ -5,6 +5,7 @@
   <artifactId>jlox</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
+  <javaVersion>11.05<javaVersion>
   <name>jlox</name>
   <url>http://maven.apache.org</url>
   <dependencies>
