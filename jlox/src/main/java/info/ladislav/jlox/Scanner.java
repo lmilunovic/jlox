@@ -109,11 +109,15 @@ class Scanner {
     return true;                                         
   }       
   
-  /** Helper method for character lookahead */
+  /** Helper methods for character lookahead */
   private char peek() {           
     if (isAtEnd()) return '\0';   
     return source.charAt(current);
   }               
+  private char peekNext() {                         
+    if (current + 1 >= source.length()) return '\0';
+    return source.charAt(current + 1);              
+  } 
   
   private void string() {      
 
@@ -137,14 +141,14 @@ class Scanner {
   }
 
   private void number() {                                     
-    while (isDigit(peek())) advance();
+    while (Character.isDigit(peek())) advance();
 
     // Look for a fractional part.                            
-    if (peek() == '.' && isDigit(peekNext())) {               
+    if (peek() == '.' && Character.isDigit(peekNext())) {               
       // Consume the "."                                      
       advance();                                              
 
-      while (isDigit(peek())) advance();                      
+      while (Character.isDigit(peek())) advance();                      
     }                                                         
 
     addToken(NUMBER,                                          
