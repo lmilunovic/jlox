@@ -5,7 +5,7 @@
   <artifactId>jlox</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
-  <javaVersion>11.05<javaVersion>
+
   <name>jlox</name>
   <url>http://maven.apache.org</url>
   <dependencies>
@@ -16,4 +16,34 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <build>
+		<plugins>
+      <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
+          <configuration>
+            <release>11</release>
+            <compilerArgument>-Xlint</compilerArgument>
+          </configuration>
+        </plugin>
+          <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>info.ladislav.jlox.JLox</mainClass>
+        </configuration>
+      </plugin>
+		  </plugins>
+
+     
+
+    </build>
 </project>

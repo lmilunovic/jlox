@@ -196,17 +196,26 @@ class Scanner {
     addToken(type);                                            
   }       
 
+  /* TODO nested multiline comments */
+
   private void multilineComment(){
-    while(peek() != '*' && !isAtEnd() ){
+
+    while(!isAtEnd()){
+
+      if(peek() == '*' && peekNext() == '/'){
+        advance(); 
+        advance();
+        return; 
+      }
+
       if(peek() == '\n'){
         ++line;
       }
+
       advance();
     }
 
-    if( isAtEnd() || peek() != '/') {
-      JLox.error(current,"Unmached multiline comment.");
-    }
+    JLox.error(current,"Unmached multiline comment - reached EOF");
   }
 
   private boolean isAlpha(char c) {       
