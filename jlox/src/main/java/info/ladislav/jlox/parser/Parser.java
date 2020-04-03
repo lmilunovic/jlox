@@ -32,11 +32,11 @@ public class Parser {
     }                 
     
     public Expr parse() {                
-        try {                       
+        try {
           return comma();
         } catch (ParseError error) {
-          return null;              
-        }                           
+          return null;
+        }
     }  
 
     /** AST */
