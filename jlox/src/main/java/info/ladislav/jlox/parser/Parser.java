@@ -10,7 +10,8 @@ import info.ladislav.jlox.lexer.TokenType;
 /**
  * 
  * Expression grammar:
- * comma          → expression ( (",") expression)*
+ * comma          → ternary ( (",") ternary)*
+ * ternary        → expression | expression ("?") comma (":") ternary
  * expression     → equality ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
@@ -42,13 +43,32 @@ public class Parser {
     /** AST */
 
     private Expr comma(){
-       Expr expr = expression();
+       Expr expr = ternary();
 
        while(match(TokenType.COMMA)){
         Token operator = previous();
-        Expr right = expression();
+        Expr right = ternary();
         expr = new Expr.Binary(expr, operator, right);
        } 
+
+      return expr;
+    }
+
+    private Expr ternary(){
+
+      Expr expr = expression();
+
+      if(match(TokenType.QUESTION_MARK)){
+        Expr if_true = comma();
+
+        if(!match(TokenType.COLON)){
+          throw error(peek(), "Expected colon.");  
+        } 
+
+        Expr if_false = ternary();
+        return new Expr.Ternary(expr, if_true, if_false);
+
+      }
 
       return expr;
     }
