@@ -130,6 +130,7 @@ public class Scanner {
     tokens.add(new Token(type, text, literal, line));    
   }            
   
+  /** Lookahead */
   private boolean match(char expected) {                 
     if (isAtEnd()) return false;                         
     if (source.charAt(current) != expected) return false;
@@ -142,7 +143,8 @@ public class Scanner {
   private char peek() {           
     if (isAtEnd()) return '\0';   
     return source.charAt(current);
-  }               
+  }
+  
   private char peekNext() {                         
     if (current + 1 >= source.length()) return '\0';
     return source.charAt(current + 1);              

@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import info.ladislav.jlox.lexer.*;
+import info.ladislav.jlox.parser.*;
 /**
  * JLox interpreter initial version.
  *
@@ -49,12 +50,26 @@ public class JLox
       private static void run(String source) {    
         // For now, just print the tokens.
         List<Token> tokens =  new Scanner(source).scanTokens();
-        tokens.forEach(System.out::println);                                         
+        Parser parser = new Parser(tokens);                    
+        Expr expression = parser.parse();
+
+        // Stop if there was a syntax error.                   
+        if (hadError) return;                                  
+
+        System.out.println(new AstPrinter().print(expression));                                 
       }              
       
       public static void error(int line, String message) {                       
         report(line, "", message);                                        
       }
+
+      public static void error(Token token, String message) {              
+        if (token.type == TokenType.EOF) {                          
+          report(token.line, " at end", message);                   
+        } else {                                                    
+          report(token.line, " at '" + token.lexeme + "'", message);
+        }                                                           
+      }                    
     
       private static void report(int line, String where, String message) {
         System.err.println(                                               
