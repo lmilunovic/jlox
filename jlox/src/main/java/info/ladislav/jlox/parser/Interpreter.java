@@ -22,6 +22,7 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     @Override
     public Object visitBinaryExpr(Binary expr) {
+
         Object left = evaluate(expr.left);
         Object right = evaluate(expr.right);
 
@@ -55,8 +56,19 @@ public class Interpreter implements Expr.Visitor<Object> {
                     return (double)left + (double)right;
                 }
 
-                if (left instanceof String && right instanceof String) {
-                    return (String)left + (String)right;
+                if (left instanceof String || right instanceof String) {
+                    String leftStr =  left.toString();
+                    String rightStr = right.toString();
+                    
+                    if(left instanceof Double){
+                        leftStr = removeTrailing(".0", leftStr);
+                    }
+                    
+                    if(right instanceof Double ){
+                        rightStr = removeTrailing(".0", rightStr);
+                    }
+
+                    return leftStr + rightStr;
                 }
 
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
@@ -75,13 +87,30 @@ public class Interpreter implements Expr.Visitor<Object> {
     @Override
     public Object visitTernaryExpr(Ternary expr) {
 
-        Object  cond = evaluate(expr.condition);
+        Object cond = evaluate(expr.condition);
 
-        if((boolean) cond == true){
-            return evaluate(expr.if_true);
+        if(!isTruthy(cond)){
+            return evaluate(expr.if_false);
         }
 
-        return  evaluate(expr.if_false);
+        if(cond instanceof Double){
+
+            if ( (double) cond > 0) {
+                return evaluate(expr.if_true);
+            }
+            return evaluate(expr.if_false);
+
+        }
+
+        if(cond instanceof Boolean){
+            if((boolean) cond == true){
+                return evaluate(expr.if_true);
+            }else {
+                return evaluate(expr.if_false);
+            }
+        }
+
+        return evaluate(expr.if_true);
     }
 
     @Override
@@ -164,13 +193,18 @@ public class Interpreter implements Expr.Visitor<Object> {
 
         // Hack. Work around Java adding ".0" to integer-valued doubles.
         if (object instanceof Double) {
-          String text = object.toString();
-          if (text.endsWith(".0")) {
-            text = text.substring(0, text.length() - 2);
-          }
-          return text;
+          return removeTrailing(".0", object.toString());
         }
 
         return object.toString();
+      }
+
+      private String removeTrailing(String t, String s) {
+
+        if(s.endsWith(t)){
+            return s.substring(0, s.length() - t.length());
+        }
+
+        return s;
       }
 }
