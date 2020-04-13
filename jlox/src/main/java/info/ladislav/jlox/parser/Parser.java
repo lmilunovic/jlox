@@ -12,10 +12,12 @@ import info.ladislav.jlox.lexer.TokenType;
  * 
  * Lox grammar:
  * 
- * program        → statement* EOF;
+ * program        → declaration* EOF;
  * 
+ * declaration    → varDecl | statement 
+ * varDecl        → "var" IDENTIFIER ("=" expression)? ";"
  * statement      → exprStmt | printStmt
- * exprStmt       → expression ";";
+ * exprStmt       → expression ";"
  * printStmt      → "print" expression ";"
  * 
  * expression     → comma
@@ -26,7 +28,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * addition       → multiplication ( ( "-" | "+" ) multiplication )* 
  * multiplication → unary ( ( "/" | "*" ) unary )* 
  * unary          → ( "!" | "-" ) unary | primary 
- * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" 
+ * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER
  * 
  */
 
@@ -55,7 +57,7 @@ public class Parser {
           List<Stmt> statements = new ArrayList<>();
 
           while(!isAtEnd()){
-            statements.add(statement());
+            statements.add(declaration());
           }
   
           return statements;
@@ -66,6 +68,38 @@ public class Parser {
     }  
 
     /** AST */
+
+    private Stmt declaration(){
+
+      try{
+
+        if(match(TokenType.VAR)){
+          return varDeclaration();
+        }
+
+        return statement();
+
+      }catch(ParseError e){
+        synchronize();
+        return null;
+      }
+
+    }
+
+    private Stmt varDeclaration(){
+
+      Token name = consume(TokenType.IDENTIFIER, "Variable name expected.");
+
+      Expr initializer = null;
+
+      if(match(TokenType.EQUAL)){
+        initializer = expression();
+      }
+
+       consume(TokenType.SEMICOLON, "Expected ';' after variable declaration.");
+       return new Stmt.Var(name, initializer);
+    }
+
 
     private Stmt statement(){
 
@@ -190,7 +224,11 @@ public class Parser {
         if (match(TokenType.NUMBER, TokenType.STRING)) {                           
           return new Expr.Literal(previous().literal);         
         }                                                      
-    
+        
+        if(match(TokenType.IDENTIFIER)){
+          return new Expr.Variable(previous());
+        }
+
         if (match(TokenType.LEFT_PAREN)) {                               
           Expr expr = comma();                            
           consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
@@ -248,4 +286,25 @@ public class Parser {
         return new ParseError();                             
       }                    
 
+      private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+          if (previous().type == TokenType.SEMICOLON) return;
+
+          switch (peek().type) {
+            case CLASS:
+            case FUN:
+            case VAR:
+            case FOR:
+            case IF:
+            case WHILE:
+            case PRINT:
+            case RETURN:
+              return;
+          }
+
+          advance();
+        }                                          
+      }
   }                           
