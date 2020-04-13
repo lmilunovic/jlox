@@ -1,5 +1,7 @@
 package info.ladislav.jlox.parser;
 
+import java.util.List;
+
 import info.ladislav.jlox.JLox;
 import info.ladislav.jlox.lexer.Token;
 import info.ladislav.jlox.parser.Expr.Binary;
@@ -7,17 +9,24 @@ import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.Unary;
+import info.ladislav.jlox.parser.Stmt.Expression;
+import info.ladislav.jlox.parser.Stmt.Print;
 
-public class Interpreter implements Expr.Visitor<Object> {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    public void interpret(Expr expression){
+    public void interpret(List<Stmt> statements) {
 
-        try{
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
-        }catch( RuntimeError e){
+        try {
+            for (Stmt statement : statements) {
+                execute(statement);              
+              }               
+        } catch (RuntimeError e) {
             JLox.runtimeError(e);
         }
+    }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);             
     }
 
     @Override
@@ -26,8 +35,8 @@ public class Interpreter implements Expr.Visitor<Object> {
         Object left = evaluate(expr.left);
         Object right = evaluate(expr.right);
 
-        switch(expr.operator.type){
-            //Equality
+        switch (expr.operator.type) {
+            // Equality
             case BANG_EQUAL:
                 return !isEqual(left, right);
             case EQUAL_EQUAL:
@@ -35,16 +44,16 @@ public class Interpreter implements Expr.Visitor<Object> {
             // Comparison operators
             case GREATER:
                 checkNumberOperands(expr.operator, left, right);
-                return (double)left > (double)right;
+                return (double) left > (double) right;
             case GREATER_EQUAL:
                 checkNumberOperands(expr.operator, left, right);
-                return (double)left >= (double)right;
-             case LESS:
+                return (double) left >= (double) right;
+            case LESS:
                 checkNumberOperands(expr.operator, left, right);
-                return (double)left < (double)right;
+                return (double) left < (double) right;
             case LESS_EQUAL:
                 checkNumberOperands(expr.operator, left, right);
-                return (double)left <= (double)right;
+                return (double) left <= (double) right;
 
             // Arithmetical operators
             case MINUS:
@@ -53,18 +62,18 @@ public class Interpreter implements Expr.Visitor<Object> {
             case PLUS:
 
                 if (left instanceof Double && right instanceof Double) {
-                    return (double)left + (double)right;
+                    return (double) left + (double) right;
                 }
 
                 if (left instanceof String || right instanceof String) {
-                    String leftStr =  left.toString();
+                    String leftStr = left.toString();
                     String rightStr = right.toString();
-                    
-                    if(left instanceof Double){
+
+                    if (left instanceof Double) {
                         leftStr = removeTrailing(".0", leftStr);
                     }
-                    
-                    if(right instanceof Double ){
+
+                    if (right instanceof Double) {
                         rightStr = removeTrailing(".0", rightStr);
                     }
 
@@ -75,6 +84,11 @@ public class Interpreter implements Expr.Visitor<Object> {
 
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
+
+                if ((double) right == 0) {
+                    throw new RuntimeError(expr.operator, "Division by zero.");
+                }
+
                 return (double) left / (double) right;
             case STAR:
                 checkNumberOperands(expr.operator, left, right);
@@ -89,23 +103,23 @@ public class Interpreter implements Expr.Visitor<Object> {
 
         Object cond = evaluate(expr.condition);
 
-        if(!isTruthy(cond)){
+        if (!isTruthy(cond)) {
             return evaluate(expr.if_false);
         }
 
-        if(cond instanceof Double){
+        if (cond instanceof Double) {
 
-            if ( (double) cond > 0) {
+            if ((double) cond > 0) {
                 return evaluate(expr.if_true);
             }
             return evaluate(expr.if_false);
 
         }
 
-        if(cond instanceof Boolean){
-            if((boolean) cond == true){
+        if (cond instanceof Boolean) {
+            if ((boolean) cond == true) {
                 return evaluate(expr.if_true);
-            }else {
+            } else {
                 return evaluate(expr.if_false);
             }
         }
@@ -131,7 +145,7 @@ public class Interpreter implements Expr.Visitor<Object> {
         switch (expr.operator.type) {
             case MINUS:
                 checkNumberOperand(expr.operator, right);
-                return -(double)right;
+                return -(double) right;
             case BANG:
                 return !isTruthy(right);
         }
@@ -141,34 +155,34 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     /** HELPER METHODS */
 
-    private Object evaluate(Expr expr){
+    private Object evaluate(Expr expr) {
         return expr.accept(this);
     }
 
     /** Like in Ruby "false" and "nil" are falsey and everything else is truthy */
-    private boolean isTruthy(Object obj){
+    private boolean isTruthy(Object obj) {
 
-        if (obj instanceof Boolean){
+        if (obj instanceof Boolean) {
             return (boolean) obj;
         }
 
         return obj != null;
     }
 
-    private boolean isEqual(Object a, Object b){
+    private boolean isEqual(Object a, Object b) {
 
-        if(a == null && b == null) {
+        if (a == null && b == null) {
             return true;
         }
 
-        if(a == null){
+        if (a == null) {
             return false;
         }
 
         return a.equals(b);
     }
 
-    private void checkNumberOperand(Token operator, Object operand){
+    private void checkNumberOperand(Token operator, Object operand) {
 
         if (operand instanceof Double) {
             return;
@@ -193,18 +207,31 @@ public class Interpreter implements Expr.Visitor<Object> {
 
         // Hack. Work around Java adding ".0" to integer-valued doubles.
         if (object instanceof Double) {
-          return removeTrailing(".0", object.toString());
+            return removeTrailing(".0", object.toString());
         }
 
         return object.toString();
-      }
+    }
 
-      private String removeTrailing(String t, String s) {
+    private String removeTrailing(String t, String s) {
 
-        if(s.endsWith(t)){
+        if (s.endsWith(t)) {
             return s.substring(0, s.length() - t.length());
         }
 
         return s;
-      }
+    }
+
+    @Override
+    public Void visitExpressionStmt(Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
 }

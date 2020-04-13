@@ -1,5 +1,6 @@
 package info.ladislav.jlox.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import info.ladislav.jlox.JLox;
@@ -9,16 +10,23 @@ import info.ladislav.jlox.lexer.TokenType;
 
 /**
  * 
- * Expression grammar:
+ * Lox grammar:
+ * 
+ * program        → statement* EOF;
+ * 
+ * statement      → exprStmt | printStmt
+ * exprStmt       → expression ";";
+ * printStmt      → "print" expression ";"
+ * 
+ * expression     → comma
  * comma          → ternary ( (",") ternary)*
- * ternary        → expression | expression ("?") comma (":") ternary
- * expression     → equality ;
- * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
- * comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
- * addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
- * multiplication → unary ( ( "/" | "*" ) unary )* ;
- * unary          → ( "!" | "-" ) unary | primary ;
- * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" ;
+ * ternary        → equality | equality ("?") comma (":") ternary
+ * equality       → comparison ( ( "!=" | "==" ) comparison )* 
+ * comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* 
+ * addition       → multiplication ( ( "-" | "+" ) multiplication )* 
+ * multiplication → unary ( ( "/" | "*" ) unary )* 
+ * unary          → ( "!" | "-" ) unary | primary 
+ * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" 
  * 
  */
 
@@ -41,15 +49,49 @@ public class Parser {
       this.tokens = tokens;                              
     }                 
     
-    public Expr parse() {                
-        try {
-          return comma();
-        } catch (ParseError error) {
+    public List<Stmt> parse() {                
+
+        try{
+          List<Stmt> statements = new ArrayList<>();
+
+          while(!isAtEnd()){
+            statements.add(statement());
+          }
+  
+          return statements;
+        }catch(ParseError e){
           return null;
         }
+      
     }  
 
     /** AST */
+
+    private Stmt statement(){
+
+      if(match(TokenType.PRINT)){
+        return printStatement();
+      }
+
+      return expressionStatement();
+    } 
+
+    private Stmt printStatement(){
+      Expr value = expression();
+      consume(TokenType.SEMICOLON, "Expect ';' after value.");
+      return new Stmt.Print(value);
+    }
+
+    private Stmt expressionStatement(){
+      Expr expr = expression();
+      consume(TokenType.SEMICOLON, "Expect ';' after value.");
+      return new Stmt.Expression(expr);
+    }
+
+
+    private Expr expression(){
+      return comma();
+    }
 
     private Expr comma(){
        Expr expr = ternary();
@@ -65,7 +107,7 @@ public class Parser {
 
     private Expr ternary(){
 
-      Expr expr = expression();
+      Expr expr = equality();
 
       if(match(TokenType.QUESTION_MARK)){
         Expr if_true = comma();
@@ -80,10 +122,6 @@ public class Parser {
       }
 
       return expr;
-    }
-
-    private Expr expression(){
-        return equality();
     }
 
     private Expr equality(){

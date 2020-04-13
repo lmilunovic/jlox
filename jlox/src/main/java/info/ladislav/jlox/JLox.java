@@ -55,12 +55,12 @@ public class JLox
         // For now, just print the tokens.
         List<Token> tokens =  new Scanner(source).scanTokens();
         Parser parser = new Parser(tokens);                    
-        Expr expression = parser.parse();
+        List<Stmt> statements = parser.parse();
 
         // Stop if there was a syntax error.                   
         if (hadError) return;                                  
 
-        interpreter.interpret(expression);
+        interpreter.interpret(statements);
       }              
       
       public static void error(int line, String message) {                       
