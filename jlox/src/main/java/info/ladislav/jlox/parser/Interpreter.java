@@ -9,24 +9,29 @@ import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.Unary;
+import info.ladislav.jlox.parser.Expr.Variable;
 import info.ladislav.jlox.parser.Stmt.Expression;
 import info.ladislav.jlox.parser.Stmt.Print;
+import info.ladislav.jlox.parser.Stmt.Var;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+
+    private Environment environment = new Environment();
 
     public void interpret(List<Stmt> statements) {
 
         try {
             for (Stmt statement : statements) {
-                execute(statement);              
-              }               
+                execute(statement);
+            }
         } catch (RuntimeError e) {
             JLox.runtimeError(e);
         }
     }
 
     private void execute(Stmt stmt) {
-        stmt.accept(this);             
+        stmt.accept(this);
     }
 
     @Override
@@ -233,5 +238,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Var stmt) {
+        Object value = null;
+        
+        if(stmt.initializer != null){
+            value = evaluate(stmt.initializer);
+        }
+        environment.define(stmt.name.lexeme, value);
+        
+        return null;
+    }
+
+    @Override
+    public Object visitVariableExpr(Variable expr) {
+        return environment.get(expr.name);
     }
 }
