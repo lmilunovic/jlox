@@ -23,7 +23,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * expression     → comma
  * comma          → ternary ( (",") ternary)*
  * 
- *  TODO assignment expression comes here
+ *  TODO assignment expression comes between comma and ternary
  * 
  * ternary        → equality | equality ("?") comma (":") ternary
  * equality       → comparison ( ( "!=" | "==" ) comparison )* 
