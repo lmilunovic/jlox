@@ -16,18 +16,15 @@ import info.ladislav.jlox.lexer.TokenType;
  * 
  * declaration    → varDecl | statement 
  * varDecl        → "var" IDENTIFIER ("=" expression)? ";"
- * statement      → exprStmt | printStmt
+ * statement      → exprStmt | printStmt | block
+ * block          → "{" declaration* "}"
  * exprStmt       → expression ";"
  * printStmt      → "print" expression ";"
  * 
  * expression     → comma
  * comma          → assignment ( (",") assignment)*
  * 
-<<<<<<< HEAD
- *  TODO assignment expression comes between comma and ternary
-=======
  * assignment     → IDENTIFIER "=" assignment | ternary
->>>>>>> feature/assignment
  * 
  * ternary        → equality | equality ("?") assignment (":") assignment
  * equality       → comparison ( ( "!=" | "==" ) comparison )* 
@@ -114,8 +111,24 @@ public class Parser {
         return printStatement();
       }
 
+      if(match(TokenType.LEFT_BRACE)){
+        return new Stmt.Block(block());
+      }
+
       return expressionStatement();
     } 
+
+    private List<Stmt> block(){
+      List<Stmt> statements = new ArrayList<>();
+
+      while(!check(TokenType.RIGHT_BRACE) && !isAtEnd()){
+        statements.add(declaration());
+      }
+
+      consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+      return statements;
+      
+    }
 
     private Stmt printStatement(){
       Expr value = expression();

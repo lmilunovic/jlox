@@ -11,6 +11,7 @@ import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
+import info.ladislav.jlox.parser.Stmt.Block;
 import info.ladislav.jlox.parser.Stmt.Expression;
 import info.ladislav.jlox.parser.Stmt.Print;
 import info.ladislav.jlox.parser.Stmt.Var;
@@ -195,6 +196,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return value;
     }
 
+    @Override
+    public Void visitBlockStmt(Block stmt) {
+        executeBlock(stmt.statements, new Environment(this.environment));
+        return null;
+    }
+
+    void executeBlock(List<Stmt> statements, Environment environment){
+        Environment previous = this.environment;
+
+        try{
+            this.environment = environment;
+            for (Stmt statement : statements){
+                execute(statement);
+            }
+        }finally{
+            this.environment = previous;  
+        }
+    }
+    
     /** HELPER METHODS */
 
     private Object evaluate(Expr expr) {
@@ -263,6 +283,5 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return s;
     }
-
  
 }
