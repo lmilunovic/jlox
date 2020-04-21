@@ -21,11 +21,15 @@ import info.ladislav.jlox.lexer.TokenType;
  * printStmt      → "print" expression ";"
  * 
  * expression     → comma
- * comma          → ternary ( (",") ternary)*
+ * comma          → assignment ( (",") assignment)*
  * 
+<<<<<<< HEAD
  *  TODO assignment expression comes between comma and ternary
+=======
+ * assignment     → IDENTIFIER "=" assignment | ternary
+>>>>>>> feature/assignment
  * 
- * ternary        → equality | equality ("?") comma (":") ternary
+ * ternary        → equality | equality ("?") assignment (":") assignment
  * equality       → comparison ( ( "!=" | "==" ) comparison )* 
  * comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* 
  * addition       → multiplication ( ( "-" | "+" ) multiplication )* 
@@ -131,13 +135,33 @@ public class Parser {
     }
 
     private Expr comma(){
-       Expr expr = ternary();
+       Expr expr = assignment();
 
        while(match(TokenType.COMMA)){
         Token operator = previous();
-        Expr right = ternary();
+        Expr right = assignment();
         expr = new Expr.Binary(expr, operator, right);
        } 
+
+      return expr;
+    }
+
+
+    private Expr assignment(){
+      Expr expr = ternary();
+
+      if(match(TokenType.EQUAL)){
+
+        Token equals = previous();
+        Expr value = assignment();
+
+        if(expr instanceof Expr.Variable){
+          Token name = ((Expr.Variable) expr).name;
+          return new Expr.Assign(name, value);
+        }
+
+        error(equals, "Invalid assignment target.");
+      }
 
       return expr;
     }
@@ -147,13 +171,13 @@ public class Parser {
       Expr expr = equality();
 
       if(match(TokenType.QUESTION_MARK)){
-        Expr if_true = comma();
+        Expr if_true = assignment();
 
         if(!match(TokenType.COLON)){
           throw error(peek(), "Expected colon.");  
         } 
 
-        Expr if_false = ternary();
+        Expr if_false = assignment();
         return new Expr.Ternary(expr, if_true, if_false);
 
       }

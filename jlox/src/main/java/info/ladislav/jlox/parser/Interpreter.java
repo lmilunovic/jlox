@@ -4,6 +4,7 @@ import java.util.List;
 
 import info.ladislav.jlox.JLox;
 import info.ladislav.jlox.lexer.Token;
+import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
@@ -15,7 +16,6 @@ import info.ladislav.jlox.parser.Stmt.Print;
 import info.ladislav.jlox.parser.Stmt.Var;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-
 
     private Environment environment = new Environment();
 
@@ -158,6 +158,43 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitExpressionStmt(Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Var stmt) {
+        Object value = null;
+
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+        environment.define(stmt.name.lexeme, value);
+
+        return null;
+    }
+
+    @Override
+    public Object visitVariableExpr(Variable expr) {
+        return environment.get(expr.name);
+    }
+
+    @Override
+    public Object visitAssignExpr(Assign expr) {
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
+    }
+
     /** HELPER METHODS */
 
     private Object evaluate(Expr expr) {
@@ -227,33 +264,5 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return s;
     }
 
-    @Override
-    public Void visitExpressionStmt(Expression stmt) {
-        evaluate(stmt.expression);
-        return null;
-    }
-
-    @Override
-    public Void visitPrintStmt(Print stmt) {
-        Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
-        return null;
-    }
-
-    @Override
-    public Void visitVarStmt(Var stmt) {
-        Object value = null;
-        
-        if(stmt.initializer != null){
-            value = evaluate(stmt.initializer);
-        }
-        environment.define(stmt.name.lexeme, value);
-        
-        return null;
-    }
-
-    @Override
-    public Object visitVariableExpr(Variable expr) {
-        return environment.get(expr.name);
-    }
+ 
 }
