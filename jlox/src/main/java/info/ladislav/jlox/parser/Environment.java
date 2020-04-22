@@ -2,13 +2,14 @@ package info.ladislav.jlox.parser;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import info.ladislav.jlox.lexer.Token;
 
 public class Environment {
 
     final Environment enclosing;
-    private final Map<String, Object> values = new HashMap<>();
+    private final Map<String, Optional<Object>> values = new HashMap<>();
 
     Environment() {
         enclosing = null;
@@ -21,7 +22,7 @@ public class Environment {
     Object get(Token name){
         
         if(values.containsKey(name.lexeme)){
-            return values.get(name.lexeme);
+            return values.get(name.lexeme).orElseThrow(()-> new RuntimeError(name, "Variable " + name.lexeme + " is not defined."));
         }
 
         if (enclosing != null) return enclosing.get(name);
@@ -29,11 +30,11 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void define(String name, Object value){
+    void define(String name, Optional<Object> value){
         values.put(name, value);
     }
 
-    void assign(Token name, Object value){
+    void assign(Token name, Optional<Object> value){
 
         if(values.containsKey(name.lexeme)){
             values.put(name.lexeme, value);

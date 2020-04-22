@@ -54,7 +54,7 @@ public class JLox
       private static void run(String source) {    
         // For now, just print the tokens.
         List<Token> tokens =  new Scanner(source).scanTokens();
-        Parser parser = new Parser(tokens);                    
+        Parser parser = new Parser(tokens);               
         List<Stmt> statements = parser.parse();
 
         // Stop if there was a syntax error.                   

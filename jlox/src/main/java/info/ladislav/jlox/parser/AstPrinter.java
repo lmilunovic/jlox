@@ -2,6 +2,7 @@ package info.ladislav.jlox.parser;
 
 import info.ladislav.jlox.lexer.Token;
 import info.ladislav.jlox.lexer.TokenType;
+import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
@@ -65,6 +66,12 @@ public class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitVariableExpr(Variable expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String visitAssignExpr(Assign expr) {
         // TODO Auto-generated method stub
         return null;
     }
