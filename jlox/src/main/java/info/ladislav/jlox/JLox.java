@@ -41,7 +41,8 @@ public class JLox
         if (hadRuntimeError) System.exit(70);
       }         
 
-      private static void runPrompt() throws IOException {         
+      private static void runPrompt() throws IOException {
+        //TODO implement possibility to execute expressions with REPL
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     
         for (;;) { 
