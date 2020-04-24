@@ -5,15 +5,18 @@ import java.util.Optional;
 
 import info.ladislav.jlox.JLox;
 import info.ladislav.jlox.lexer.Token;
+import info.ladislav.jlox.lexer.TokenType;
 import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
+import info.ladislav.jlox.parser.Expr.Logical;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
 import info.ladislav.jlox.parser.Stmt.Block;
 import info.ladislav.jlox.parser.Stmt.Expression;
+import info.ladislav.jlox.parser.Stmt.If;
 import info.ladislav.jlox.parser.Stmt.Print;
 import info.ladislav.jlox.parser.Stmt.Var;
 
@@ -203,19 +206,47 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-    void executeBlock(List<Stmt> statements, Environment environment){
+    void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
 
-        try{
+        try {
             this.environment = environment;
-            for (Stmt statement : statements){
+            for (Stmt statement : statements) {
                 execute(statement);
             }
-        }finally{
-            this.environment = previous;  
+        } finally {
+            this.environment = previous;
         }
     }
-    
+
+    @Override
+    public Void visitIfStmt(If stmt) {
+
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Object visitLogicalExpr(Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if(expr.operator.type == TokenType.OR) {
+            if(isTruthy(left)){
+                return left;
+            }
+        }else{
+            if(!isTruthy(left)) {
+                return left;
+            }
+        }
+        return evaluate(expr.right);
+    }
+
     /** HELPER METHODS */
 
     private Object evaluate(Expr expr) {
