@@ -19,6 +19,7 @@ import info.ladislav.jlox.parser.Stmt.Expression;
 import info.ladislav.jlox.parser.Stmt.If;
 import info.ladislav.jlox.parser.Stmt.Print;
 import info.ladislav.jlox.parser.Stmt.Var;
+import info.ladislav.jlox.parser.Stmt.While;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -235,12 +236,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitLogicalExpr(Logical expr) {
         Object left = evaluate(expr.left);
 
-        if(expr.operator.type == TokenType.OR) {
-            if(isTruthy(left)){
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) {
                 return left;
             }
-        }else{
-            if(!isTruthy(left)) {
+        } else {
+            if (!isTruthy(left)) {
                 return left;
             }
         }
@@ -253,6 +254,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return expr.accept(this);
     }
 
+
+    @Override
+    public Void visitWhileStmt(While stmt) {
+        
+        while(isTruthy(evaluate(stmt.condition))){
+            execute(stmt.body);
+        }
+
+        return null;
+    }
     /** Like in Ruby "false" and "nil" are falsey and everything else is truthy */
     private boolean isTruthy(Object obj) {
 

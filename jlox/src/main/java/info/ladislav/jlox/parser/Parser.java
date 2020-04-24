@@ -16,8 +16,10 @@ import info.ladislav.jlox.lexer.TokenType;
  * 
  * declaration    → varDecl | statement 
  * varDecl        → "var" IDENTIFIER ("=" expression)? ";"
- * statement      → exprStmt | ifStmt | printStmt | block
- * ifStmt         → "if" "(" expression ")" statement ( "else" statement)? 
+ * statement      → exprStmt | ifStmt | printStmt | whileStmt | block
+ * ifStmt         → "if" "(" expression ")" statement ( "else" statement)?
+ * whileStmt      → "while" "(" expression ")" statement;
+ * 
  * block          → "{" declaration* "}"
  * exprStmt       → expression ";"
  * printStmt      → "print" expression ";"
@@ -119,12 +121,16 @@ public class Parser {
         return printStatement();
       }
 
+      if(match(TokenType.WHILE)){
+        return whileStatement();
+      }
+
       if(match(TokenType.LEFT_BRACE)){
         return new Stmt.Block(block());
       }
 
       return expressionStatement();
-    } 
+    }
 
     private List<Stmt> block(){
       List<Stmt> statements = new ArrayList<>();
@@ -156,6 +162,15 @@ public class Parser {
       Expr value = expression();
       consume(TokenType.SEMICOLON, "Expect ';' after value.");
       return new Stmt.Print(value);
+    }
+
+    private Stmt whileStatement(){
+      consume(TokenType.LEFT_PAREN, "Expect '(' ater 'while'.");
+      Expr condition = expression();
+      consume(TokenType.RIGHT_PAREN, "Expect ')' ater condition.");
+      Stmt body = statement();
+
+      return new Stmt.While(condition, body);
     }
 
     private Stmt expressionStatement(){
