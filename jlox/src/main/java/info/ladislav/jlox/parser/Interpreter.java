@@ -1,5 +1,6 @@
 package info.ladislav.jlox.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import info.ladislav.jlox.lexer.Token;
 import info.ladislav.jlox.lexer.TokenType;
 import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
+import info.ladislav.jlox.parser.Expr.Call;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
@@ -254,16 +256,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return expr.accept(this);
     }
 
-
     @Override
     public Void visitWhileStmt(While stmt) {
-        
-        while(isTruthy(evaluate(stmt.condition))){
+
+        while (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body);
         }
 
         return null;
     }
+
     /** Like in Ruby "false" and "nil" are falsey and everything else is truthy */
     private boolean isTruthy(Object obj) {
 
@@ -325,6 +327,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         return s;
+    }
+
+    @Override
+    public Object visitCallExpr(Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        if(!(callee instanceof LoxCallable)){
+            throw new RuntimeError(expr.paren, "Can only call functions and classes");
+        }
+
+        List<Object> args = new ArrayList<>();
+        for(Expr arg : expr.arguments){
+            args.add(evaluate(arg));
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+        
+        if(args.size() != function.arity()){
+            throw new RuntimeError(expr.paren, "Expected " + function.arity() +
+                 "arguments, but got" + args.size() + ".");
+        }
+
+        return function.call(this, args);
     }
  
 }

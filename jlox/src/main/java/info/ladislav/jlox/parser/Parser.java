@@ -8,6 +8,7 @@ import info.ladislav.jlox.JLox;
 import info.ladislav.jlox.lexer.Token;
 import info.ladislav.jlox.lexer.TokenType;
 
+//TODO implement break; statement !
 
 /**
  * 
@@ -40,7 +41,9 @@ import info.ladislav.jlox.lexer.TokenType;
  * comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* 
  * addition       → multiplication ( ( "-" | "+" ) multiplication )* 
  * multiplication → unary ( ( "/" | "*" ) unary )* 
- * unary          → ( "!" | "-" ) unary | primary 
+ * unary          → ( "!" | "-" ) unary | call 
+ * call           → primary ( "(" argiments? ")" )*
+ * arguments      → expression ("," expression)*
  * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER
  * 
  */
@@ -368,8 +371,42 @@ public class Parser {
           return new Expr.Unary(operator, right);
         }
     
-        return primary();                        
-      }         
+        return call();                        
+      }       
+      
+      private Expr call() {
+        Expr expr = primary();
+
+        while(true){
+          if(match(TokenType.LEFT_PAREN)){
+            expr = finishCall(expr);
+          }else {
+            break;
+          }
+        }
+
+        return expr;
+      }
+
+      private Expr finishCall(Expr callee){
+        List <Expr> args = new ArrayList<>();
+        if(!check(TokenType.RIGHT_PAREN)){
+          
+          do{
+            if(args.size() >= 255){
+              error(peek(), "Cannot have more than 255 arguments.");
+            }
+
+            args.add(expression());
+          } while(match(TokenType.COMMA));
+
+        }
+
+        Token paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments");
+
+        return new Expr.Call(callee, paren, args);
+
+      }
 
       private Expr primary() {                                 
         if (match(TokenType.FALSE)) return new Expr.Literal(false);      
