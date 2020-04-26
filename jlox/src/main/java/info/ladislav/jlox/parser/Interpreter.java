@@ -24,8 +24,26 @@ import info.ladislav.jlox.parser.Stmt.Var;
 import info.ladislav.jlox.parser.Stmt.While;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    
+    Interpreter(){
+        globals.define("clock", Optional.of(new LoxCallable(){
+        
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+        
+            @Override
+            public int arity() {
+                return 0;
+            }
+        })
+        );
+    }
 
-    private Environment environment = new Environment();
+    final Environment globals = new Environment();
+
+    private Environment environment = globals;
 
     public void interpret(List<Stmt> statements) {
 
