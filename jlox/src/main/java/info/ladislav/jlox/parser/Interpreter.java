@@ -18,27 +18,27 @@ import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
 import info.ladislav.jlox.parser.Stmt.Block;
 import info.ladislav.jlox.parser.Stmt.Expression;
+import info.ladislav.jlox.parser.Stmt.Function;
 import info.ladislav.jlox.parser.Stmt.If;
 import info.ladislav.jlox.parser.Stmt.Print;
 import info.ladislav.jlox.parser.Stmt.Var;
 import info.ladislav.jlox.parser.Stmt.While;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    
-    Interpreter(){
-        globals.define("clock", Optional.of(new LoxCallable(){
-        
+
+    Interpreter() {
+        globals.define("clock", Optional.of(new LoxCallable() {
+
             @Override
             public Object call(Interpreter interpreter, List<Object> args) {
                 return (double) System.currentTimeMillis() / 1000.0;
             }
-        
+
             @Override
             public int arity() {
                 return 0;
             }
-        })
-        );
+        }));
     }
 
     final Environment globals = new Environment();
@@ -268,6 +268,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return evaluate(expr.right);
     }
 
+    @Override
+    public Void visitFunctionStmt(Function stmt) {
+        LoxFunction fn = new LoxFunction(stmt);
+        environment.define(stmt.name.lexeme, Optional.of(fn));
+        return null;
+    }
+ 
     /** HELPER METHODS */
 
     private Object evaluate(Expr expr) {
@@ -351,23 +358,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitCallExpr(Call expr) {
         Object callee = evaluate(expr.callee);
 
-        if(!(callee instanceof LoxCallable)){
+        if (!(callee instanceof LoxCallable)) {
             throw new RuntimeError(expr.paren, "Can only call functions and classes");
         }
 
         List<Object> args = new ArrayList<>();
-        for(Expr arg : expr.arguments){
+        for (Expr arg : expr.arguments) {
             args.add(evaluate(arg));
         }
 
         LoxCallable function = (LoxCallable) callee;
-        
-        if(args.size() != function.arity()){
-            throw new RuntimeError(expr.paren, "Expected " + function.arity() +
-                 "arguments, but got" + args.size() + ".");
+
+        if (args.size() != function.arity()) {
+            throw new RuntimeError(expr.paren,
+                    "Expected " + function.arity() + "arguments, but got" + args.size() + ".");
         }
 
         return function.call(this, args);
     }
- 
 }

@@ -16,8 +16,11 @@ import info.ladislav.jlox.lexer.TokenType;
  * 
  * program        → declaration* EOF;
  * 
- * declaration    → varDecl | statement 
+ * declaration    → funDecl | varDecl | statement 
  * varDecl        → "var" IDENTIFIER ("=" expression)? ";"
+ * funDecl        → "fun" function
+ * function       → IDENTIFIER "(" parameters? ")"  block;
+ * parameters     → IDENTIFIER ( "," IDENTIFIER )*
  * 
  * statement      → exprStmt | ifStmt | printStmt | whileStmt | block
  * ifStmt         → "if" "(" expression ")" statement ( "else" statement)?
@@ -89,6 +92,10 @@ public class Parser {
 
       try{
 
+        if (match(TokenType.FUN)){
+          return function("function");
+        }
+
         if(match(TokenType.VAR)){
           return varDeclaration();
         }
@@ -100,6 +107,28 @@ public class Parser {
         return null;
       }
 
+    }
+
+    private Stmt.Function function(String kind){
+      Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+      consume(TokenType.LEFT_PAREN, "Expect '(' after" + kind + "name.");
+      List<Token> params = new ArrayList<>();
+      if(!check(TokenType.RIGHT_PAREN)){
+
+        do {
+          if(params.size() >= 255){
+            error(peek(), "Cannot have more than 255 parameters.");
+          }
+
+          params.add(consume(TokenType.IDENTIFIER, "Expect parameter name"));
+
+        }while(match(TokenType.COMMA));
+      }
+
+      consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+      List<Stmt> body = block();
+      
+      return new Stmt.Function(name, params, body);
     }
 
     private Stmt varDeclaration(){
