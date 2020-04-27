@@ -45,7 +45,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * addition       → multiplication ( ( "-" | "+" ) multiplication )* 
  * multiplication → unary ( ( "/" | "*" ) unary )* 
  * unary          → ( "!" | "-" ) unary | call 
- * call           → primary ( "(" argiments? ")" )*
+ * call           → primary ( "(" arguments? ")" )*
  * arguments      → expression ("," expression)*
  * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER
  * 

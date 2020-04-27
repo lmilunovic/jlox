@@ -269,6 +269,28 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitCallExpr(Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        if (!(callee instanceof LoxCallable)) {
+            throw new RuntimeError(expr.paren, "Can only call functions and classes");
+        }
+
+        List<Object> args = new ArrayList<>();
+        for (Expr arg : expr.arguments) {
+            args.add(evaluate(arg));
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+
+        if (args.size() != function.arity()) {
+            throw new RuntimeError(expr.paren,
+                    "Expected " + function.arity() + "arguments, but got" + args.size() + ".");
+        }
+
+        return function.call(this, args);
+    }
+    @Override
     public Void visitFunctionStmt(Function stmt) {
         LoxFunction fn = new LoxFunction(stmt);
         environment.define(stmt.name.lexeme, Optional.of(fn));
@@ -354,26 +376,4 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return s;
     }
 
-    @Override
-    public Object visitCallExpr(Call expr) {
-        Object callee = evaluate(expr.callee);
-
-        if (!(callee instanceof LoxCallable)) {
-            throw new RuntimeError(expr.paren, "Can only call functions and classes");
-        }
-
-        List<Object> args = new ArrayList<>();
-        for (Expr arg : expr.arguments) {
-            args.add(evaluate(arg));
-        }
-
-        LoxCallable function = (LoxCallable) callee;
-
-        if (args.size() != function.arity()) {
-            throw new RuntimeError(expr.paren,
-                    "Expected " + function.arity() + "arguments, but got" + args.size() + ".");
-        }
-
-        return function.call(this, args);
-    }
 }
