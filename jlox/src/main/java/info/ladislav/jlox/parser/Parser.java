@@ -22,8 +22,9 @@ import info.ladislav.jlox.lexer.TokenType;
  * function       → IDENTIFIER "(" parameters? ")"  block;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )*
  * 
- * statement      → exprStmt | ifStmt | printStmt | whileStmt | block
+ * statement      → exprStmt | ifStmt | printStmt | returnStmt | whileStmt | block
  * ifStmt         → "if" "(" expression ")" statement ( "else" statement)?
+ * returnStmt     → "return" expression? ";"
  * whileStmt      → "while" "(" expression ")" statement;
  * forStmt        → "for" "(" (varDecl | exprStmt | ";") expression? ";" expression? ";" ")" statement;
  * 
@@ -160,6 +161,10 @@ public class Parser {
         return printStatement();
       }
 
+      if(match(TokenType.RETURN)){
+        return returnStatement();
+      }
+
       if(match(TokenType.WHILE)){
         return whileStatement();
       }
@@ -201,6 +206,18 @@ public class Parser {
       Expr value = expression();
       consume(TokenType.SEMICOLON, "Expect ';' after value.");
       return new Stmt.Print(value);
+    }
+
+
+    private Stmt returnStatement(){
+      Token keyword = previous();
+      Expr value = null;
+      if(!check(TokenType.SEMICOLON)){
+        value = expression();
+      }
+
+      consume(TokenType.SEMICOLON, "Expect ',' after return value");
+      return new Stmt.Return(keyword, value);
     }
 
     private Stmt whileStatement(){

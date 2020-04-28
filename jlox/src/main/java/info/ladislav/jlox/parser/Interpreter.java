@@ -21,6 +21,7 @@ import info.ladislav.jlox.parser.Stmt.Expression;
 import info.ladislav.jlox.parser.Stmt.Function;
 import info.ladislav.jlox.parser.Stmt.If;
 import info.ladislav.jlox.parser.Stmt.Print;
+import info.ladislav.jlox.parser.Stmt.Return;
 import info.ladislav.jlox.parser.Stmt.Var;
 import info.ladislav.jlox.parser.Stmt.While;
 
@@ -290,13 +291,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return function.call(this, args);
     }
+
     @Override
     public Void visitFunctionStmt(Function stmt) {
         LoxFunction fn = new LoxFunction(stmt);
         environment.define(stmt.name.lexeme, Optional.of(fn));
         return null;
     }
- 
+
+    
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if(stmt.value != null) {
+            value = evaluate(stmt.value);
+        }
+
+        throw new info.ladislav.jlox.parser.Return(value)
+    }
+
     /** HELPER METHODS */
 
     private Object evaluate(Expr expr) {
