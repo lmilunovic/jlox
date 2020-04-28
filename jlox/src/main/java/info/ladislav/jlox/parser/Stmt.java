@@ -90,7 +90,13 @@ public abstract class Stmt {
       this.value = value;
     }
 
-    @Override
+    public Return(Object value2) {
+	}
+
+	public Return(Object value2) {
+	}
+
+	@Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitReturnStmt(this);
     }
