@@ -17,10 +17,12 @@ import info.ladislav.jlox.lexer.TokenType;
  * program        → declaration* EOF;
  * 
  * declaration    → funDecl | varDecl | statement 
- * varDecl        → "var" IDENTIFIER ("=" expression)? ";"
+ * varDecl        → "var" IDENTIFIER ("=" expression)? ";" | 
  * funDecl        → "fun" function
  * function       → IDENTIFIER "(" parameters? ")"  block;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )*
+ * 
+ * lambda         → "fun" "(" parameters? ")"  block;
  * 
  * statement      → exprStmt | ifStmt | printStmt | returnStmt | whileStmt | block
  * ifStmt         → "if" "(" expression ")" statement ( "else" statement)?
@@ -32,7 +34,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * exprStmt       → expression ";"
  * printStmt      → "print" expression ";"
  * 
- * expression     → comma
+ * expression     → comma | lambda
  * comma          → assignment ( (",") assignment)*
  * 
  * assignment     → IDENTIFIER "=" assignment | ternary
