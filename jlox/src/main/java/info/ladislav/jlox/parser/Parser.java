@@ -34,19 +34,24 @@ import info.ladislav.jlox.lexer.TokenType;
  * exprStmt       → expression ";"
  * printStmt      → "print" expression ";"
  * 
- * expression     → comma | lambda
+ * expression     → comma 
  * comma          → assignment ( (",") assignment)*
  * 
  * assignment     → IDENTIFIER "=" assignment | ternary
+ * 
  * ternary        → logic_or | logic_or ("?") assignment (":") assignment
+ * 
+ * 
  * 
  * logic_or       → logic_and ("or" logic_and)*
  * logic and      → equality ("and" equality)*
  * 
  * equality       → comparison ( ( "!=" | "==" ) comparison )* 
  * comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* 
+ * 
  * addition       → multiplication ( ( "-" | "+" ) multiplication )* 
  * multiplication → unary ( ( "/" | "*" ) unary )* 
+ * 
  * unary          → ( "!" | "-" ) unary | call 
  * call           → primary ( "(" arguments? ")" )*
  * arguments      → expression ("," expression)*
@@ -113,6 +118,7 @@ public class Parser {
     }
 
     private Stmt.Function function(String kind){
+
       Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
       consume(TokenType.LEFT_PAREN, "Expect '(' after" + kind + "name.");
       List<Token> params = new ArrayList<>();
@@ -129,6 +135,7 @@ public class Parser {
       }
 
       consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+      consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
       List<Stmt> body = block();
       
       return new Stmt.Function(name, params, body);

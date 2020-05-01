@@ -27,7 +27,7 @@ import info.ladislav.jlox.parser.Stmt.While;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    Interpreter() {
+    public Interpreter() {
         globals.define("clock", Optional.of(new LoxCallable() {
 
             @Override
