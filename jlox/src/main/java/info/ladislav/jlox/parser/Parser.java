@@ -41,8 +41,6 @@ import info.ladislav.jlox.lexer.TokenType;
  * 
  * ternary        → logic_or | logic_or ("?") assignment (":") assignment
  * 
- * 
- * 
  * logic_or       → logic_and ("or" logic_and)*
  * logic and      → equality ("and" equality)*
  * 
@@ -55,7 +53,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * unary          → ( "!" | "-" ) unary | call 
  * call           → primary ( "(" arguments? ")" )*
  * arguments      → expression ("," expression)*
- * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER
+ * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER | lambda
  * 
  */
 
@@ -100,7 +98,8 @@ public class Parser {
 
       try{
 
-        if (match(TokenType.FUN)){
+        if (check(TokenType.FUN) && checkNext(TokenType.IDENTIFIER)){
+          consume(TokenType.FUN, null);
           return function("function");
         }
 
@@ -120,10 +119,15 @@ public class Parser {
     private Stmt.Function function(String kind){
 
       Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+      return new Stmt.Function(name, functionBody(kind));
+    }
+
+    private Expr.Function functionBody(String kind){
+
       consume(TokenType.LEFT_PAREN, "Expect '(' after" + kind + "name.");
       List<Token> params = new ArrayList<>();
-      if(!check(TokenType.RIGHT_PAREN)){
 
+      if(!check(TokenType.RIGHT_PAREN)){
         do {
           if(params.size() >= 255){
             error(peek(), "Cannot have more than 255 parameters.");
@@ -138,7 +142,7 @@ public class Parser {
       consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
       List<Stmt> body = block();
       
-      return new Stmt.Function(name, params, body);
+      return new Expr.Function(params, body);
     }
 
     private Stmt varDeclaration(){
@@ -482,6 +486,10 @@ public class Parser {
           return new Expr.Grouping(expr);                      
         }           
         
+        if (match(TokenType.FUN)){
+          return functionBody("function");
+        } 
+
         throw error(peek(), "Expect expression.");  
       }  
 
@@ -501,7 +509,20 @@ public class Parser {
       private boolean check(TokenType type) {
         if (isAtEnd()) return false;         
         return peek().type == type;          
-      }                   
+      }
+
+      private boolean checkNext(TokenType tokenType){
+        if (isAtEnd()){
+          return false;
+        }
+
+        if(tokens.get(current + 1).type == TokenType.EOF){
+          return false;
+        }
+
+        return tokens.get(current + 1).type == tokenType;
+
+      }
 
       private Token advance() {   
         if (!isAtEnd()) current++;

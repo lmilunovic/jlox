@@ -5,6 +5,7 @@ import info.ladislav.jlox.lexer.TokenType;
 import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
 import info.ladislav.jlox.parser.Expr.Call;
+import info.ladislav.jlox.parser.Expr.Function;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
@@ -86,6 +87,12 @@ public class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitCallExpr(Call expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String visitFunctionExpr(Function expr) {
         // TODO Auto-generated method stub
         return null;
     }
