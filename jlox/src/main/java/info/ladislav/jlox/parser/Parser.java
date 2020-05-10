@@ -16,7 +16,8 @@ import info.ladislav.jlox.lexer.TokenType;
  * 
  * program        → declaration* EOF;
  * 
- * declaration    → funDecl | varDecl | statement 
+ * declaration    → classDecl | funDecl | varDecl | statement 
+ * classDecl      → "class" IDENTIFIER "{" function* "}"
  * varDecl        → "var" IDENTIFIER ("=" expression)? ";" | 
  * funDecl        → "fun" function
  * function       → IDENTIFIER "(" parameters? ")"  block;
@@ -51,7 +52,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * multiplication → unary ( ( "/" | "*" ) unary )* 
  * 
  * unary          → ( "!" | "-" ) unary | call 
- * call           → primary ( "(" arguments? ")" )*
+ * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* 
  * arguments      → expression ("," expression)*
  * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER | lambda
  * 
@@ -98,6 +99,10 @@ public class Parser {
 
       try{
 
+        if(match(TokenType.CLASS)){
+          return classDeclaration();
+        }
+
         if (check(TokenType.FUN) && checkNext(TokenType.IDENTIFIER)){
           consume(TokenType.FUN, null);
           return function("function");
@@ -116,6 +121,20 @@ public class Parser {
 
     }
 
+    private Stmt classDeclaration(){
+      Token name = consume(TokenType.IDENTIFIER, "Expect class name");
+      consume(TokenType.LEFT_BRACE, "Expect '{' before class bodaaay!");
+
+      List<Stmt.Function> methods = new ArrayList<>();
+      while(!check(TokenType.RIGHT_BRACE) && !isAtEnd()){
+        methods.add(function("method"));
+      }
+
+      consume(TokenType.RIGHT_BRACE,"Expect '}' after class body");
+
+      return new Stmt.Class(name, methods);
+    }
+    
     private Stmt.Function function(String kind){
 
       Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");

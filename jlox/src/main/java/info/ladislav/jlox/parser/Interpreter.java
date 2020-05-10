@@ -19,6 +19,7 @@ import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
 import info.ladislav.jlox.parser.Stmt.Block;
+import info.ladislav.jlox.parser.Stmt.Class;
 import info.ladislav.jlox.parser.Stmt.Expression;
 import info.ladislav.jlox.parser.Stmt.Function;
 import info.ladislav.jlox.parser.Stmt.If;
@@ -221,12 +222,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitAssignExpr(Assign expr) {
         Optional<Object> value = Optional.of(evaluate(expr.value));
         Integer distance = locals.get(expr);
-        if(distance != null){
+        if (distance != null) {
             environment.assignAt(distance, expr.name, value);
-        }else {
+        } else {
             environment.assign(expr.name, value);
         }
-       
+
         return value;
     }
 
@@ -307,30 +308,39 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-    
     @Override
     public Object visitFunctionExpr(info.ladislav.jlox.parser.Expr.Function expr) {
-        return new LoxFunction( null, expr, environment);
+        return new LoxFunction(null, expr, environment);
     }
 
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
         Object value = null;
-        if(stmt.value != null) {
+        if (stmt.value != null) {
             value = evaluate(stmt.value);
         }
 
         throw new info.ladislav.jlox.parser.Return(value);
     }
 
+    @Override
+    public Void visitClassStmt(Class stmt) {
+        environment.define(stmt.name.lexeme, null);
+        LoxClass clazz = new LoxClass(stmt.name.lexeme);
+        environment.assign(stmt.name, clazz);
+        
+        return null;
+    }
+
+
     /** HELPER METHODS */
 
-    private Object lookUpVariable(Token name, Expr expr){
+    private Object lookUpVariable(Token name, Expr expr) {
         Integer distance = locals.get(expr);
 
-        if(distance != null){
+        if (distance != null) {
             return environment.getAt(distance, name.lexeme);
-        }else {
+        } else {
             return globals.get(name);
         }
     }
@@ -415,5 +425,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return s;
     }
+
+
 
 }
