@@ -12,6 +12,7 @@ import info.ladislav.jlox.lexer.TokenType;
 import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
 import info.ladislav.jlox.parser.Expr.Call;
+import info.ladislav.jlox.parser.Expr.Get;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
@@ -327,11 +328,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitClassStmt(Class stmt) {
         environment.define(stmt.name.lexeme, null);
         LoxClass clazz = new LoxClass(stmt.name.lexeme);
-        environment.assign(stmt.name, clazz);
-        
+        environment.assign(stmt.name, Optional.of(clazz));
+
         return null;
     }
-
 
     /** HELPER METHODS */
 
@@ -424,6 +424,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         return s;
+    }
+
+    @Override
+    public Object visitGetExpr(Get expr) {
+        Object object = evaluate(expr.object);
+
+        if(object instanceof LoxInstance) {
+            return ((LoxInstance) object).get(expr.name);
+        }
+        throw new RuntimeError(expr.name, "Only instances have properties");
     }
 
 

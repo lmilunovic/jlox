@@ -458,7 +458,10 @@ public class Parser {
         while(true){
           if(match(TokenType.LEFT_PAREN)){
             expr = finishCall(expr);
-          }else {
+          }else if (match(TokenType.DOT)){
+            Token name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+            expr = new Expr.Get(expr, name);
+          }else{
             break;
           }
         }

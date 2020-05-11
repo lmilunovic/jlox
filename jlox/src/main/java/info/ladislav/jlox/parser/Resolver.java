@@ -10,6 +10,7 @@ import info.ladislav.jlox.lexer.Token;
 import info.ladislav.jlox.parser.Expr.Assign;
 import info.ladislav.jlox.parser.Expr.Binary;
 import info.ladislav.jlox.parser.Expr.Call;
+import info.ladislav.jlox.parser.Expr.Get;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
@@ -264,11 +265,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
-    
     @Override
     public Void visitClassStmt(Class stmt) {
         declare(stmt.name);
         define(stmt.name);
+        return null;
+    }
+
+    @Override
+    public Void visitGetExpr(Get expr) {
+        resolve(expr.object);
         return null;
     }
 
