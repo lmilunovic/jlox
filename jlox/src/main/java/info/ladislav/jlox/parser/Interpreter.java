@@ -16,6 +16,7 @@ import info.ladislav.jlox.parser.Expr.Get;
 import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
+import info.ladislav.jlox.parser.Expr.Set;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
@@ -430,12 +431,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitGetExpr(Get expr) {
         Object object = evaluate(expr.object);
 
-        if(object instanceof LoxInstance) {
+        if (object instanceof LoxInstance) {
             return ((LoxInstance) object).get(expr.name);
         }
         throw new RuntimeError(expr.name, "Only instances have properties");
     }
 
+    @Override
+    public Object visitSetExpr(Set expr) {
+        Object object = evaluate(expr.object);
 
-
+        if(!(object instanceof LoxInstance)){
+            throw new RuntimeError(expr.name, "Only instances have fields");
+        }
+        Object value = evaluate(expr.value);
+        ((LoxInstance)object).set(expr.name, value);
+        return value;
+    }
 }
