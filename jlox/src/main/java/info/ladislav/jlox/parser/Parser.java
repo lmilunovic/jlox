@@ -17,7 +17,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * program        → declaration* EOF;
  * 
  * declaration    → classDecl | funDecl | varDecl | statement 
- * classDecl      → "class" IDENTIFIER "{" function* "}"
+ * classDecl      → "class" IDENTIFIER ("<" IDENTIFIER)? "{" function* "}"
  * varDecl        → "var" IDENTIFIER ("=" expression)? ";" | 
  * funDecl        → "fun" function
  * function       → IDENTIFIER "(" parameters? ")"  block;
@@ -123,6 +123,13 @@ public class Parser {
 
     private Stmt classDeclaration(){
       Token name = consume(TokenType.IDENTIFIER, "Expect class name");
+
+      Expr.Variable superclass = null;
+      if(match(TokenType.LESS)) {
+        consume(TokenType.IDENTIFIER, "Expect superclass name.");
+        superclass = new Expr.Variable(previous());
+      }
+
       consume(TokenType.LEFT_BRACE, "Expect '{' before class bodaaay!");
 
       List<Stmt.Function> methods = new ArrayList<>();
@@ -132,7 +139,7 @@ public class Parser {
 
       consume(TokenType.RIGHT_BRACE,"Expect '}' after class body");
 
-      return new Stmt.Class(name, methods);
+      return new Stmt.Class(name, superclass, methods);
     }
     
     private Stmt.Function function(String kind){
