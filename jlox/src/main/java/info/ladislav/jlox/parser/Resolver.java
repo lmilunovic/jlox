@@ -16,6 +16,7 @@ import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
 import info.ladislav.jlox.parser.Expr.Set;
 import info.ladislav.jlox.parser.Expr.Ternary;
+import info.ladislav.jlox.parser.Expr.This;
 import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
 import info.ladislav.jlox.parser.Stmt.Block;
@@ -35,6 +36,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -42,6 +44,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum FunctionType {
         NONE, FUNCTION, METHOD
+    }
+
+    private enum ClassType {
+        NONE, CLASS
     }
 
     // Block
@@ -268,13 +274,22 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name);
         define(stmt.name);
+        
+        beginScope();
+        scopes.peek().put("this", true);
 
-        for (Stmt.Function method : stmt.methods){
+        for (Stmt.Function method : stmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
             resolveFunction(method, declaration);
         }
+        endScope();
+
+        currentClass = enclosingClass;
         return null;
     }
 
@@ -288,6 +303,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitSetExpr(Set expr) {
         resolve(expr.value);
         resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpr(This expr) {
+        if(currentClass == ClassType.NONE){
+            JLox.error(expr.keyword, "Cannot use 'this' outside of a class");
+            return null;
+        }
+
+        resolveLocal(expr, expr.keyword);
         return null;
     }
 

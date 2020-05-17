@@ -36,6 +36,12 @@ public class LoxFunction implements LoxCallable {
         return null;
     }
 
+    LoxFunction bind(LoxInstance instance) {
+        Environment environment = new Environment(closure);
+        environment.define("this", Optional.of(instance));
+        return new LoxFunction(name, declaration, environment);
+    }
+
     @Override                                       
     public String toString() {
 

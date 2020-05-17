@@ -18,6 +18,7 @@ import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
 import info.ladislav.jlox.parser.Expr.Set;
 import info.ladislav.jlox.parser.Expr.Ternary;
+import info.ladislav.jlox.parser.Expr.This;
 import info.ladislav.jlox.parser.Expr.Unary;
 import info.ladislav.jlox.parser.Expr.Variable;
 import info.ladislav.jlox.parser.Stmt.Block;
@@ -330,7 +331,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         environment.define(stmt.name.lexeme, null);
 
         Map<String, LoxFunction> methods = new HashMap<>();
-        for(Stmt.Function method : stmt.methods){
+        for (Stmt.Function method : stmt.methods) {
             LoxFunction function = new LoxFunction(method.name.lexeme, method.function, environment);
             methods.put(method.name.lexeme, function);
         }
@@ -341,6 +342,33 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Object visitGetExpr(Get expr) {
+        Object object = evaluate(expr.object);
+
+        if (object instanceof LoxInstance) {
+            return ((LoxInstance) object).get(expr.name);
+        }
+        throw new RuntimeError(expr.name, "Only instances have properties");
+    }
+
+    @Override
+    public Object visitSetExpr(Set expr) {
+        Object object = evaluate(expr.object);
+
+        if (!(object instanceof LoxInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields");
+        }
+        Object value = evaluate(expr.value);
+        ((LoxInstance) object).set(expr.name, value);
+        return value;
+    }
+
+    @Override
+    public Object visitThisExpr(This expr) {
+        return lookUpVariable(expr.keyword, expr);
+    }
+    
     /** HELPER METHODS */
 
     private Object lookUpVariable(Token name, Expr expr) {
@@ -434,25 +462,4 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return s;
     }
 
-    @Override
-    public Object visitGetExpr(Get expr) {
-        Object object = evaluate(expr.object);
-
-        if (object instanceof LoxInstance) {
-            return ((LoxInstance) object).get(expr.name);
-        }
-        throw new RuntimeError(expr.name, "Only instances have properties");
-    }
-
-    @Override
-    public Object visitSetExpr(Set expr) {
-        Object object = evaluate(expr.object);
-
-        if(!(object instanceof LoxInstance)){
-            throw new RuntimeError(expr.name, "Only instances have fields");
-        }
-        Object value = evaluate(expr.value);
-        ((LoxInstance)object).set(expr.name, value);
-        return value;
-    }
 }
