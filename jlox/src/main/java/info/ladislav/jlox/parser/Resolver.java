@@ -48,7 +48,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private enum ClassType {
-        NONE, CLASS
+        NONE, CLASS, SUBCLASS
     }
 
     // Block
@@ -289,6 +289,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         if (stmt.superclass != null) {
+            currentClass = ClassType.SUBCLASS;
             resolve(stmt.superclass);
         }
 
@@ -343,6 +344,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitSuperExpr(Super expr) {
+        
+        if(currentClass == ClassType.NONE){
+            JLox.error(expr.keyword, "Cannot use 'super' outside of a class.");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            JLox.error(expr.keyword, "Cannot use 'super' in a class with no superclass.");
+        }
+
         resolveLocal(expr, expr.keyword);
         return null;
     }
