@@ -15,6 +15,7 @@ import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
 import info.ladislav.jlox.parser.Expr.Set;
+import info.ladislav.jlox.parser.Expr.Super;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.This;
 import info.ladislav.jlox.parser.Expr.Unary;
@@ -201,7 +202,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         if (stmt.value != null) {
-            if(currentFunction == FunctionType.INITIALIZER){
+            if (currentFunction == FunctionType.INITIALIZER) {
                 JLox.error(stmt.keyword, "Cannot return a value from an initializer");
             }
             resolve(stmt.value);
@@ -283,12 +284,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name);
         define(stmt.name);
 
-        if(stmt.superclass != null && stmt.name.lexeme.equals(stmt.superclass.name.lexeme)){
+        if (stmt.superclass != null && stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
             JLox.error(stmt.superclass.name, "A class connot inherit from itself.");
         }
-        
-        if(stmt.superclass != null) {
+
+        if (stmt.superclass != null) {
             resolve(stmt.superclass);
+        }
+
+        if (stmt.superclass != null) {
+            beginScope();
+            scopes.peek().put("super", true);
         }
 
         beginScope();
@@ -296,12 +302,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         for (Stmt.Function method : stmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
-            if(method.name.lexeme.equals("init")){
+            if (method.name.lexeme.equals("init")) {
                 declaration = FunctionType.INITIALIZER;
             }
             resolveFunction(method, declaration);
         }
         endScope();
+
+        if (stmt.superclass != null) {
+            endScope();
+        }
 
         currentClass = enclosingClass;
         return null;
@@ -322,11 +332,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitThisExpr(This expr) {
-        if(currentClass == ClassType.NONE){
+        if (currentClass == ClassType.NONE) {
             JLox.error(expr.keyword, "Cannot use 'this' outside of a class");
             return null;
         }
 
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpr(Super expr) {
         resolveLocal(expr, expr.keyword);
         return null;
     }

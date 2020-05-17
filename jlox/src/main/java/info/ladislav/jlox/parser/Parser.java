@@ -54,7 +54,7 @@ import info.ladislav.jlox.lexer.TokenType;
  * unary          → ( "!" | "-" ) unary | call 
  * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* 
  * arguments      → expression ("," expression)*
- * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER | lambda
+ * primary        → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER | lambda | super "." IDENTIFIER
  * 
  */
 
@@ -508,6 +508,13 @@ public class Parser {
           return new Expr.Literal(previous().literal);         
         }                                                      
         
+        if(match(TokenType.SUPER)){
+          Token keyword = previous();
+          consume(TokenType.DOT, "Expect '.' after 'super'");
+          Token method = consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+          return new Expr.Super(keyword, method);
+        }
+
         if(match(TokenType.THIS)) {
           return new Expr.This(previous());
         }

@@ -11,6 +11,7 @@ import info.ladislav.jlox.parser.Expr.Grouping;
 import info.ladislav.jlox.parser.Expr.Literal;
 import info.ladislav.jlox.parser.Expr.Logical;
 import info.ladislav.jlox.parser.Expr.Set;
+import info.ladislav.jlox.parser.Expr.Super;
 import info.ladislav.jlox.parser.Expr.Ternary;
 import info.ladislav.jlox.parser.Expr.This;
 import info.ladislav.jlox.parser.Expr.Unary;
@@ -114,6 +115,12 @@ public class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitThisExpr(This expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String visitSuperExpr(Super expr) {
         // TODO Auto-generated method stub
         return null;
     }
